@@ -34,17 +34,23 @@ write one Markdown report to `review/`.
 repo_name=$(basename -s .git "<git-url>")
 if [ -d "input/$repo_name/.git" ]; then
   git -C "input/$repo_name" fetch --all
-  git -C "input/$repo_name" checkout "<branch-or-tag>"   # if given
-  git -C "input/$repo_name" pull
+  [ -n "<branch-or-tag>" ] && git -C "input/$repo_name" checkout "<branch-or-tag>"
+  # Only pull if on a branch (has an upstream) — pulling in detached HEAD
+  # (i.e. a tag was checked out) has nothing to pull from and errors.
+  if git -C "input/$repo_name" symbolic-ref -q HEAD >/dev/null; then
+    git -C "input/$repo_name" pull
+  fi
 else
-  git clone <git-url> "input/$repo_name"
+  git clone <git-url> "input/$repo_name" || { echo "Clone failed — check the URL and access rights" >&2; exit 1; }
   [ -n "<branch-or-tag>" ] && git -C "input/$repo_name" checkout "<branch-or-tag>"
 fi
 short_hash=$(git -C "input/$repo_name" rev-parse --short HEAD)
 ```
 
 Git is assumed already installed and authenticated on this machine — do not
-attempt to manage credentials.
+attempt to manage credentials. If the clone fails (bad URL, no access, network
+error), stop and report the failure to the user plainly — don't proceed to
+later steps against a missing/stale checkout.
 
 ### 2. Read project structure
 
@@ -87,15 +93,22 @@ installed on this machine — never install anything:
 | Docker | a `Dockerfile` exists | `hadolint` | `command -v hadolint` |
 | CI/CD | GitHub Actions workflows | `actionlint` | `command -v actionlint` |
 
-Run whatever is available via `Bash` and capture the output. If nothing is
-available, state plainly in the report that no static analysis ran — never
-fabricate tool output.
+Run whatever is available via `Bash` and capture the output; also capture
+`<tool> --version` (or equivalent) for the report's Static Analysis Run
+section. If nothing is available, state plainly in the report that no static
+analysis ran — never fabricate tool output or a version number.
 
 ### 5. Load checklists
 
-Read only the checklist sections relevant to what step 3 detected — the
-"General" section of each file plus the matched stack subsections — not all
-six files in full, to control token usage:
+Every file below has the same shape: a `## General (Python & Java)` section
+with language-agnostic-to-this-stack checks, followed by stack subsections
+(`FastAPI`, `Spring Boot`, `PySpark`, `Flink`, `ETL sync jobs`,
+`SQL / data-access`, `Docker`, `CI/CD`). `style-maintainability.md` additionally
+splits out dedicated `## Python` and `## Java` sections for language idioms
+(type hints/PEP 8 vs. records/Optional/Lombok) that don't fit either "General"
+or a specific framework. Read the "General" section of each file plus the
+subsections matching what step 3 detected — not all six files in full, to
+control token usage:
 
 - `references/checklists/security.md`
 - `references/checklists/performance.md`
@@ -118,17 +131,21 @@ Identify and read closely — not skim — the files in each architectural layer
 present in the repo:
 
 - **Entrypoint** — `main.py`, `Application.java`, `manage.py`, job entry scripts
-- **API / Controllers** — route handlers, `@RestController` classes
-- **Services** — business logic
-- **Repositories / Data Access** — DB/ORM access code
+- **API / Controllers** — route handlers, `@RestController`/`@Controller` classes, files under `routes/`, `api/`, `controllers/`
+- **Services** — business logic: files/dirs named `services/`, `*_service.py`, `*Service.java`, or plain modules imported *by* the API/Controllers layer that aren't themselves route handlers or DB access (e.g. `app/services/*.py`, `*/domain/*.py` holding non-repository logic) — actively look for this layer by following the API layer's imports, don't rely on a `services/` folder name existing
+- **Repositories / Data Access** — DB/ORM access code, files/dirs named `repositories/`, `repository/`, `dao/`, `*Repository.java`
 - **Config** — settings files, env templates, `application.yaml`
 - **Infra** — `Dockerfile`, CI/CD pipeline files
 - **Tests**
 - **General** — cross-cutting concerns that don't belong to one layer (dependency management, documentation, overall architecture)
 
-Skip layers that aren't present. Evaluate each file you read against the
-loaded checklists, noting concrete findings with file:line references as you
-go rather than trying to reconstruct them from memory afterward.
+Skip layers that aren't present. Before finishing this step, double check: for
+every layer you found evidence of in step 2's file listing, did you actually
+open and review it, and does it have a report section? A layer with files
+that never gets a Read call or a report section is a miss, not an "N/A".
+Evaluate each file you read against the loaded checklists, noting concrete
+findings with file:line references as you go rather than trying to
+reconstruct them from memory afterward.
 
 ### 8. Write the report
 
@@ -192,6 +209,12 @@ Style/Maintainability, Testing, Error Handling/Logging, Architecture/
 Scalability. A positive or neutral observation worth recording (a pattern
 done well, a deliberate tradeoff) is not an issue — tag it **[Note]** instead
 of a severity, so it can't be mistaken for something that needs fixing.
+
+**Keeping a messy repo's report usable:** if a single module/category would
+otherwise collect more than ~10 findings, report the Critical/High ones in
+full and roll the remaining Medium/Low ones into a short bulleted list (still
+with file:line) rather than a full write-up each — say explicitly that the
+list was truncated for volume, don't just quietly drop items.
 
 ## Notes
 
