@@ -1,0 +1,13 @@
+/input/*
+!/input/.gitkeep
+
+/review/*
+!/review/.gitkeep
+
+/research/reference-skills/*
+!/research/reference-skills/.gitkeep
+
+.DS_Store
+.vscode/
+.metals/
+.claude/settings.local.json

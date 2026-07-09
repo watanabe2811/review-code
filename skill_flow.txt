@@ -1,0 +1,9 @@
+Thực hiện tuần tự các bước sau:
+Step 1: Đọc file skill_request.txt để xác đinh yêu cầu. Phân tích đánh giá yêu cầu để làm rõ các nội dung chưa xác đinh rõ ràng. Sau khi làm rõ viết file requirements.md
+Step 2: Đọc file requirements.md để lên plan thực hiện. Sau khi hoàn thành viết ra file plan.md
+Step 3: Đọc file plan.md đánh giá lại plan, các nội dung cần cải thiện và thực hiện cải thiện lại file plan. Kết quả đầu ra là file plan_final.md
+Step 4. Đọc file plan_final.md để bóc tách các đầu việc và ghi ra các đầu việc cần thực hiện ra file TODO.md
+Step 5: Thực hiện file TODO.md. Chú ý đảm bảo nếu là code thì phải có coverage >=95%, nếu là tài liệu yêu cầu đọc lại và đánh giá. Nếu kết quả không đạt thực hiện chỉnh sửa đến khi đạt
+Chú ý: 
+- Thực hiện lần lượt các bước
+- Khi chuyển từ bước 1-> bước 2, bước 3-> 4, bước 4 -> 5 cần confirm từ người dùng

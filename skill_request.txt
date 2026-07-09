@@ -1,0 +1,15 @@
+- Skill review code từ git
+- Yêu cầu:
+    + input:
+        - người dùng gửi link git
+        - clone code về thư mục `input`
+        - chú ý git trên máy đã cài sẵn và đã cấu hình authen
+    + output:
+        - review đánh giá code
+        - nội dung review ghi ra file trong thư mục `review`
+    + các knownledge download từ github của các skill review code 
+        - download 5 skills review phổ biến nhất trên github về làm input
+    + phạm vi review bao gồm code python, java. Các project bao gồm api, code luồng đồng bộ ETL, code pyspark, flink
+    + Đối với api dùng framework fastapi
+    + Review chú ý liên quan đến performance, security,..
+    
