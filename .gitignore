@@ -11,3 +11,4 @@
 .vscode/
 .metals/
 .claude/settings.local.json
+*.zip
